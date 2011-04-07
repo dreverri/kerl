@@ -491,11 +491,12 @@ case "$1" in
                 fi
                 ;;
             installation)
-                if is_valid_installation "$3"; then
-                    rm -Rf "$3"
-                    escaped=`echo "$3" | sed $SED_OPT -e 's#\/#\\\/#g'`
+                install_dir="$KERL_INSTALL_DIR/$3"
+                if is_valid_installation "$install_dir"; then
+                    rm -Rf "$install_dir"
+                    escaped=`echo "$install_dir" | sed $SED_OPT -e 's#\/#\\\/#g'`
                     list_remove $2s "$escaped"
-                    echo "The installation in $3 has been deleted"
+                    echo "The installation of $3 has been deleted"
                 else
                     echo "$3 is not a kerl-managed Erlang/OTP installation"
                     exit 1
