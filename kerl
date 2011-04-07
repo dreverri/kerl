@@ -26,6 +26,7 @@ KERL_BASE_DIR=$HOME/.kerl
 KERL_CONFIG=$HOME/.kerlrc
 KERL_DOWNLOAD_DIR=$KERL_BASE_DIR/archives
 KERL_BUILD_DIR=$KERL_BASE_DIR/builds
+KERL_INSTALL_DIR=$KERL_BASE_DIR/installs
 if [ -n "$KERL_CONFIGURE_OPTIONS" ]; then
     _KCO="$KERL_CONFIGURE_OPTIONS"
 fi
@@ -90,7 +91,7 @@ get_releases()
 
 update_checksum_file()
 {
-    echo "Getting the checksum file from erlang.org..." 
+    echo "Getting the checksum file from erlang.org..."
     curl $ERLANG_DOWNLOAD_URL/MD5 > "$KERL_DOWNLOAD_DIR/MD5" || exit 1
 }
 
@@ -125,7 +126,7 @@ agner_support()
         done
         return 0
     fi
-    return 1 
+    return 1
 }
 
 
@@ -143,7 +144,7 @@ is_valid_release()
 assert_valid_release()
 {
     if ! is_valid_release $1; then
-        echo "$1 is not a valid Erlang/OTP release" 
+        echo "$1 is not a valid Erlang/OTP release"
         exit 1
     fi
     return 0
@@ -407,14 +408,11 @@ case "$1" in
         ;;
     install)
         if [ $# -lt 2 ]; then
-            echo "usage: $0 $1 <build_name> [directory]"
+            echo "usage: $0 $1 <build_name>"
             exit 1
         fi
-        if [ $# -eq 3 ]; then 
-            do_install $2 "$3"
-        else
-            do_install $2 .
-        fi
+        # TODO: check if already installed
+        do_install $2 "$KERL_INSTALL_DIR/$2"
         ;;
     update)
         if [ $# -lt 2 ]; then
@@ -484,7 +482,7 @@ case "$1" in
                 if [ -d "$KERL_BUILD_DIR/$3/otp_src_$rel" ]; then
                     rm -Rf $KERL_BUILD_DIR/$3/otp_src_$rel
                     rm -Rf $KERL_BUILD_DIR/$3/agner_$rel
-                    rm -Rf $KERL_BUILD_DIR/$3/release_$rel 
+                    rm -Rf $KERL_BUILD_DIR/$3/release_$rel
                     list_remove $2s "$rel $3"
                     echo "The $3 build has been deleted"
                 else
