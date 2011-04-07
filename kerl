@@ -411,8 +411,20 @@ case "$1" in
             echo "usage: $0 $1 <build_name>"
             exit 1
         fi
-        # TODO: check if already installed
-        do_install $2 "$KERL_INSTALL_DIR/$2"
+        install_dir="$KERL_INSTALL_DIR/$2"
+        if [ -d "$install_dir" ]; then
+            if is_valid_installation "$install_dir"; then
+                echo "$2 already installed"
+                exit 1
+            else
+                echo "The install directory ($install_dir) already exists"
+                echo "but is not a kerl-managed Erlang/OTP installation."
+                echo "You must remove this directory in order to install $2"
+                exit 1
+            fi
+        else
+            do_install $2 "$install_dir"
+        fi
         ;;
     update)
         if [ $# -lt 2 ]; then
