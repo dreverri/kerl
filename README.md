@@ -72,23 +72,23 @@ You can verify your build has been registered:
     R14B02,r14b02_nohipe
 
 Now install a build to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file):
-   
-    $ kerl install r14b02 /path/to/install/dir/
-    Installing Erlang/OTP R14B02 (r14b02) in /path/to/install/dir...
-    Installing agner in /path/to/install/dir...
+
+    $ kerl install r14b02
+    Installing Erlang/OTP R14B02 (r14b02) in ~/.kerl/installs/r14b02...
+    Installing agner in  ~/.kerl/installs/r14b02...
     You can activate this installation running the following command:
-    . /path/to/install/dir/activate
+    . ~/.kerl/installs/r14b02/activate
     Later on, you can leave the installation typing:
     kerl_deactivate
 
 Here again you can check the installation's been registered:
 
     $ kerl list installations
-    r14b02 /path/to/install/dir
+    r14b02 ~/.kerl/installs/r14b02
 
 And at last activate it:
 
-    $ . /path/to/install/dir/activate
+    $ . ~/.kerl/installs/r14b02
 
 You're now ready to work with your r14b02 installation:
 
@@ -103,7 +103,7 @@ You can use agner to install packages in your activated installation, they'll be
     $ agner install cowboy
     (...)
     Installed to:
-    /path/to/install/dir/lib/cowboy-@master
+    ~/.kerl/installs/r14b02/lib/cowboy-@master
 
     $ erl
     (...)
@@ -129,19 +129,19 @@ You can get an overview of the current kerl state with:
     R14B02,r14b02_nohipe
     ----------
     Available installations:
-    r14b02 /path/to/install/dir
+    r14b02 ~/.kerl/installs/r14b02
     ----------
     Currently active installation:
     The current active installation is:
-    /path/to/install/dir
+    ~/.kerl/installs/r14b02
 
 You can delete builds and installations with the following commands:
-    
+
     $ kerl delete build r14b02
     The r14b02 build has been deleted
 
-    $ kerl delete installation /path/to/install/dir
-    The installation in /path/to/install/dir has been deleted
+    $ kerl delete installation r14b02
+    The installation of r14b02 has been deleted
 
 You can update the agner version associated with a specific build (this will only affect installations made after that):
 
@@ -157,7 +157,9 @@ You can tune kerl using the .kerlrc file in your $HOME directory.
 You can set the following variables:
 
 - KERL_DOWNLOAD_DIR where to put downloaded files, defaults to $HOME/.kerl/archives
-- KERL_BUILD_DIR where to hold the builds, defaults to $HOME/.kerl/builds
+- KERL_BUILD_DIR where to hold the builds, defaults to
+- $HOME/.kerl/builds
+- KERL_INSTALL_DIR where to install
 - KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure script, e.g. --without-termcap
 - KERL_DISABLE_AGNER if non-empty will disable agner support
 - KERL_AGNER_AUTOINSTALL a list of packages to pre-install
