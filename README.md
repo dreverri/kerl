@@ -1,13 +1,11 @@
 kerl
 ====
 
-Easy building and installing of Erlang/OTP instances
+Easy building and installing of Erlang/OTP instances.
 
-Kerl aims to be shell agnostic and its only dependencies, excluding what's required to actually build Erlang/OTP, are curl and git.
+Kerl aims to be shell agnostic; its only dependencies, excluding
+what's required to actually build Erlang/OTP, are curl and git.
 
-Unless explicitely disabled, agner is installed automatically in the sandboxes for supported Erlang/OTP versions.
-
-All done so that, once a specific release has been built, creating a new installation is as fast as possible.
 
 Downloading
 ===========
@@ -25,8 +23,9 @@ and drop it in your $PATH
 How it works
 ============
 
-Kerl keeps tracks of the releases it downloaded, built and installed,
-allowing easy installations to new destinations (without complete rebuilding) and easy switches between Erlang/OTP installations.
+Kerl keeps track of the releases it downloads, builds and installs,
+allowing easy installations to new destinations (without complete
+rebuilding) and easy switching between Erlang/OTP installations.
 
 Usage
 =====
@@ -51,10 +50,9 @@ Pick your choice and build it:
     Extracting source code
     Building Erlang/OTP R14B02 (r14b02), please wait...
     Erlang/OTP R14B02 has been successfully built
-    Fetching and building agner...
-    Agner has been successfully built
 
-Note that named builds allow you to have different builds for the same Erlang/OTP release with different configure options:
+Note that named builds allow you to have different builds for the same
+Erlang/OTP release with different configure options:
 
     $ KERL_CONFIGURE_OPTIONS=--disable-hipe kerl build R14B02 r14b02_nohipe
     Verifying archive checksum...
@@ -62,8 +60,6 @@ Note that named builds allow you to have different builds for the same Erlang/OT
     Extracting source code
     Building Erlang/OTP R14B02 (r14b02_nohipe), please wait...
     Erlang/OTP R14B02 (r14b02_nohipe) has been successfully built
-    Fetching and building agner...
-    Agner has been successfully built
 
 You can verify your build has been registered:
 
@@ -71,11 +67,10 @@ You can verify your build has been registered:
     R14B02,r14b02
     R14B02,r14b02_nohipe
 
-Now install a build to some location (optionally you can disable agner support by adding KERL_DISABLE_AGNER=yes to your $HOME/.kerlrc file, or on the contrary define a list of additional packages to install using the KERL_AGNER_AUTOINSTALL directive in the same file):
+To install a build:
 
     $ kerl install r14b02
     Installing Erlang/OTP R14B02 (r14b02) in ~/.kerl/installs/r14b02...
-    Installing agner in  ~/.kerl/installs/r14b02...
     You can activate this installation running the following command:
     . ~/.kerl/installs/r14b02/activate
     Later on, you can leave the installation typing:
@@ -94,24 +89,6 @@ You're now ready to work with your r14b02 installation:
 
     $ erl -version
     Erlang (SMP,ASYNC_THREADS,HIPE) (BEAM) emulator version 5.8.3
-
-    $ agner version
-    0.4.16
-
-You can use agner to install packages in your activated installation, they'll be directly available:
-
-    $ agner install cowboy
-    (...)
-    Installed to:
-    ~/.kerl/installs/r14b02/lib/cowboy-@master
-
-    $ erl
-    (...)
-    Eshell V5.8.3  (abort with ^G)
-    1> application:start(cowboy).
-    ok
-
-Note that you can also define a list of packages to be autoinstalled on agner enabled installations using the KERL_AGNER_AUTOINSTALL entry in you $HOME/.kerlrc file
 
 When your done just type:
     $ kerl_deactivate
@@ -143,12 +120,6 @@ You can delete builds and installations with the following commands:
     $ kerl delete installation r14b02
     The installation of r14b02 has been deleted
 
-You can update the agner version associated with a specific build (this will only affect installations made after that):
-
-    $ kerl update agner r14b02
-    Updating agner for build r14b02...
-    agner has been updated successfully
-
 Tuning
 ======
 
@@ -156,12 +127,15 @@ You can tune kerl using the .kerlrc file in your $HOME directory.
 
 You can set the following variables:
 
-- KERL_DOWNLOAD_DIR where to put downloaded files, defaults to $HOME/.kerl/archives
-- KERL_BUILD_DIR where to hold the builds, defaults to
-- $HOME/.kerl/builds
-- KERL_INSTALL_DIR where to install
-- KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure script, e.g. --without-termcap
-- KERL_DISABLE_AGNER if non-empty will disable agner support
-- KERL_AGNER_AUTOINSTALL a list of packages to pre-install
-- KERL_SASL_STARTUP use SASL system startup instead of minimal
+- KERL_DOWNLOAD_DIR where to put downloaded files, defaults to
+  $HOME/.kerl/archives
 
+- KERL_BUILD_DIR where to hold the builds, defaults to
+  $HOME/.kerl/builds
+
+- KERL_INSTALL_DIR where to install, defaults to $HOME/.kerl/installs
+
+- KERL_CONFIGURE_OPTIONS options to pass to Erlang's ./configure
+  script, e.g. --without-termcap
+
+- KERL_SASL_STARTUP use SASL system startup instead of minimal
