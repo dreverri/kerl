@@ -31,7 +31,6 @@ if [ -n "$KERL_CONFIGURE_OPTIONS" ]; then
     _KCO="$KERL_CONFIGURE_OPTIONS"
 fi
 KERL_CONFIGURE_OPTIONS=
-KERL_DISABLE_AGNER=
 KERL_SASL_STARTUP=
 
 # ensure the base dir exsists
@@ -71,8 +70,8 @@ usage()
     echo "\n  <command>       Command to be executed\n"
     echo "Valid commands are:"
     echo "  build    Build specified release"
-    echo "  install  Install the specified release at the given location"
-    echo "  update   Update agner or the list of available releases from erlang.org"
+    echo "  install  Install the specified release"
+    echo "  update   Update the list of available releases from erlang.org"
     echo "  list     List releases, builds and installations"
     echo "  delete   Delete builds and installations"
     echo "  active   Print the path of the active installation"
@@ -109,26 +108,6 @@ check_releases()
         get_releases > "$KERL_BASE_DIR/otp_releases"
     fi
 }
-
-# c.f. agner issue #98
-# https://github.com/agner/agner/issues/#issue/98
-KERL_NO_AGNER_SUPPORT="R10B-0 R10B-2 R10B-3 R10B-4 R10B-5 R10B-6 R10B-7
-R10B-8 R10B-9 R11B-0 R11B-1 R11B-2 R11B-3 R11B-4 R11B-5 R12B-0 R12B-1
-R12B-2 R12B-3 R12B-4 R12B-5 R13A R13B R13B01 R13B02 R13B03 R13B04"
-
-agner_support()
-{
-    if [ -z "$KERL_DISABLE_AGNER" ]; then
-        for v in $KERL_NO_AGNER_SUPPORT; do
-            if [ "$v" = "$1" ]; then
-                return 1
-            fi
-        done
-        return 0
-    fi
-    return 1
-}
-
 
 is_valid_release()
 {
@@ -171,23 +150,6 @@ is_valid_installation()
         return 0
     fi
     return 1
-}
-
-do_update_agner()
-{
-    rel=`get_release_from_name $1`
-    if [ "$?" -eq 1 ]; then
-        echo "Unknown build name $1"
-        exit 1
-    fi
-    TARGET="$KERL_BUILD_DIR/$1/release_$rel"
-    cd "$KERL_BUILD_DIR/$1/agner_$rel" && \
-        AGNER_BIN="$TARGET/bin" AGNER_EXACT_PREFIX="$TARGET/lib" \
-            ./agner install agner > /dev/null 2>&1
-    if [ "$?" -eq 1 ]; then
-        return 1
-    fi
-    return 0
 }
 
 do_build()
@@ -237,18 +199,6 @@ do_build()
     ./Install $INSTALL_OPT "$KERL_BUILD_DIR/$2/release_$1" > /dev/null 2>&1
     echo "Erlang/OTP $1 ($2) has been successfully built"
     list_add builds "$1,$2"
-    if agner_support $1; then
-        echo "Fetching and building agner..."
-        cd "$KERL_BUILD_DIR/$2" && \
-        git clone https://github.com/agner/agner.git agner_$1 > /dev/null 2>&1 && \
-            cd agner_$1 && \
-            PATH="$KERL_BUILD_DIR/$2/otp_src_$1/bin:$PATH" make > /dev/null 2>&1 && \
-            do_update_agner $2
-        if [ "$?" -eq 1 ]; then
-            echo "Agner install failed"; exit 1
-        fi
-        echo "Agner has been successfully built"
-    fi
 }
 
 do_install()
@@ -282,16 +232,6 @@ kerl_deactivate()
         export PATH
         unset _KERL_SAVED_PATH
     fi
-    if [ -n "\$_KERL_SAVED_AGNER_BIN" ]; then
-        AGNER_BIN="\$_KERL_SAVED_AGNER_BIN"
-        export AGNER_BIN
-        unset _KERL_SAVED_AGNER_BIN
-    fi
-    if [ -n "\$_KERL_SAVED_AGNER_EXACT_PREFIX" ]; then
-        AGNER_EXACT_PREFIX="\$_KERL_SAVED_AGNER_EXACT_PREFIX"
-        export AGNER_EXACT_PREFIX
-        unset _KERL_SAVED_AGNER_EXACT_PREFIX
-    fi
     if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
         hash -r
     fi
@@ -302,31 +242,12 @@ kerl_deactivate()
 kerl_deactivate nondestructive
 _KERL_SAVED_PATH="\$PATH"
 export _KERL_SAVED_PATH
-_KERL_SAVED_AGNER_BIN="\$AGNER_BIN"
-export _KERL_SAVED_AGNER_BIN
-_KERL_SAVED_AGNER_EXACT_PREFIX="\$AGNER_EXACT_PREFIX"
-export _KERL_SAVED_AGNER_EXACT_PREFIX
 PATH="$absdir/bin:\$PATH"
 export PATH
-AGNER_BIN="$absdir/bin"
-export AGNER_BIN
-AGNER_EXACT_PREFIX="$absdir/lib"
-export AGNER_EXACT_PREFIX
 if [ -n "\$BASH" -o -n "\$ZSH_VERSION" ]; then
     hash -r
 fi
 ACTIVATE
-    if agner_support $1; then
-        echo "Installing agner in $absdir..."
-        cp -R "$KERL_BUILD_DIR/$1/release_$rel/lib/agner-@master" "$absdir/lib/"
-        cd "$absdir/bin" && ln -s "$absdir/lib/agner-@master/bin/agner" agner
-        if [ -n "$KERL_AGNER_AUTOINSTALL" ]; then
-            for i in $KERL_AGNER_AUTOINSTALL; do
-                echo "Autoinstalling $i"
-                agner install $i > /dev/null 2>&1
-            done
-        fi
-    fi
     echo "You can activate this installation running the following command:"
     echo ". $absdir/activate"
     echo "Later on, you can leave the installation typing:"
@@ -383,14 +304,14 @@ delete_usage()
 
 update_usage()
 {
-    echo "usage: $0 $1 <releases|agner>"
+    echo "usage: $0 $1"
 }
 
 do_active()
 {
     if [ -n "$_KERL_SAVED_PATH" ]; then
         echo "The current active installation is:"
-        echo `echo $PATH | cut -d ":" -f 1 | head -c -4`
+        echo `echo $PATH | cut -d ":" -f 1 | sed s_/bin__`
         return 0
     else
         echo "No Erlang/OTP kerl installation is currently active"
@@ -427,37 +348,14 @@ case "$1" in
         fi
         ;;
     update)
-        if [ $# -lt 2 ]; then
-            update_usage
+        if [ $# -lt 1 ]; then
+            update_usage $1
             exit 1
         fi
-        case "$2" in
-            releases)
-                rm -f "$KERL_BASE_DIR/otp_releases"
-                check_releases
-                echo "The available releases are:"
-                list_print releases spaces
-                ;;
-            agner)
-                if [ $# -ne 3 ]; then
-                    echo "usage: $0 $1 $2 <build_name>"
-                    exit 1
-                fi
-                if agner_support $3; then
-                    echo "Updating agner for build $3..."
-                    if do_update_agner $3; then
-                        echo "agner has been updated successfully"
-                    else
-                        echo "failed to update agner"
-                        exit 1
-                    fi
-                fi
-                ;;
-            *)
-                update_usage
-                exit 1
-                ;;
-        esac
+        rm -f "$KERL_BASE_DIR/otp_releases"
+        check_releases
+        echo "The available releases are:"
+        list_print releases spaces
         ;;
     list)
         if [ $# -ne 2 ]; then
@@ -493,7 +391,6 @@ case "$1" in
                 rel=`get_release_from_name $3`
                 if [ -d "$KERL_BUILD_DIR/$3/otp_src_$rel" ]; then
                     rm -Rf $KERL_BUILD_DIR/$3/otp_src_$rel
-                    rm -Rf $KERL_BUILD_DIR/$3/agner_$rel
                     rm -Rf $KERL_BUILD_DIR/$3/release_$rel
                     list_remove $2s "$rel $3"
                     echo "The $3 build has been deleted"
